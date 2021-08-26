@@ -1,0 +1,1 @@
+This project attempts to implement the game blackjack as a terminal game. Wish me luck.
