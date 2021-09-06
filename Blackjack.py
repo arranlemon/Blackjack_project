@@ -31,7 +31,6 @@ class Hand:
                     values.append(values[index]-1 + card_values[1])
         sorted_values = sorted(values)
         self.hand_values = sorted_values
-        print(sorted_values)
         return            
 
 
@@ -45,15 +44,27 @@ class Hand:
             return
 
     def hit(self):
+        confirmed = False
+        while confirmed == False:
+            confirmation_decision = input("Confirming that you would like to hit with this hand of current value {}?(y/n)\n".format(self.best_hand_value)).lower().strip()
+            if confirmation_decision == "y":
+                confirmed = True
+            elif confirmation_decision == "n":
+                print("What would you like to do with this hand?")
+                return
+            else:
+                print("Please enter y or n.")
         self.cards.append(get_single_card(deck))
         print(self)
+        if self.is_bust():
+            print("Bust.")
         return 
 
-    
+
     def sit(self):
         confirmed = False
         while confirmed == False:
-            confirmation_decision = input("Confirming that you would like to sit with this hand of current value {}?(y/n)".format(self.best_hand_value)).lower().strip()
+            confirmation_decision = input("Confirming that you would like to sit with this hand of current value {}?(y/n)\n".format(self.best_hand_value)).lower().strip()
             if confirmation_decision == "y":
                 confirmed = True
             elif confirmation_decision == "n":
@@ -68,6 +79,27 @@ class Hand:
             return True
         return False
 
+    def play_hand(self):
+        #test for blackjack and then for split option
+        print(self)
+        if self.best_hand_value == 21:
+            print("Blackjack!")
+            return
+        # if self.cards[0][1:] == self.cards[1][1:]:
+            #implement split stuff here
+        while self.is_bust() == False:
+            action = input("Would you like to hit or sit?(hit/sit)\n").lower().strip()
+            if action == "hit":
+                self.hit()
+                continue
+            elif action == "sit":
+                self.sit()
+                print("You sat with the following hand:")
+                print(self)
+                return
+            else:
+                print("Please enter hit or sit.")
+        return
 
 
 def get_first_cards(deck):
@@ -146,14 +178,12 @@ class Player:
         action = 0
     
 reset_deck(deck)      
-test_hand = Hand([["AD",1,11],["AS",1,11],["AC",1,11]],100)
-test_hand.get_value()
-# print(test_hand)
+test_hand = Hand(get_first_cards(deck),100)
+test_hand.play_hand()
 
 
-# test_values = test_hand.get_value()
-# print(test_values)
-# print(get_best_value(test_values))
+
+
 
 
 
