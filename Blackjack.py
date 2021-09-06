@@ -29,7 +29,9 @@ class Hand:
                 values[index] += card_values[0]
                 if len(card_values) > 1:
                     values.append(values[index]-1 + card_values[1])
-        self.hand_values = values
+        sorted_values = sorted(values)
+        self.hand_values = sorted_values
+        print(sorted_values)
         return            
 
 
@@ -144,8 +146,9 @@ class Player:
         action = 0
     
 reset_deck(deck)      
-test_hand = Hand([["AD",1,11],["KS",10]],100)
-print(test_hand)
+test_hand = Hand([["AD",1,11],["AS",1,11],["AC",1,11]],100)
+test_hand.get_value()
+# print(test_hand)
 
 
 # test_values = test_hand.get_value()
