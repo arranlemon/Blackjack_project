@@ -3,8 +3,26 @@ import random
 
 deck = [["2H",2], ["3H",3], ["4H",4], ["5H",5], ["6H",6], ["7H",7], ["8H",8], ["9H",9], ["10H",10], ["JH",10], ["QH",10], ["KH",10], ["AH",1,11], ["2S",2], ["3S",3], ["4S",4], ["5S",5], ["6S",6], ["7S",7], ["8S",8], ["9S",9], ["10S",10], ["JS",10], ["QS",10], ["KS",10], ["AS",1,11], ["2D",2], ["3D",3], ["4D",4], ["5D",5], ["6D",6], ["7D",7], ["8D",8], ["9D",9], ["10D",10], ["JD",10], ["QD",10], ["KD",10], ["AD",1,11], ["2C",2], ["3C",3], ["4C",4], ["5C",5], ["6C",6], ["7C",7], ["8C",8], ["9C",9], ["10C",10], ["JC",10], ["QC",10], ["KC",10], ["AC",1,11]]
 
+win_multipliers = {"Lose":0, "Win": 2, "Blackjack": 2.5, "Push": 1}
+
+min_bet = 10
+max_bet = 100
+
+def get_first_cards(deck):
+        card1 = deck.pop(random.randint(0,len(deck)-1))
+        card2 = deck.pop(random.randint(0,len(deck)-1))
+        return [card1,card2]
+
+def get_single_card(deck):
+    card = deck.pop(random.randint(0,len(deck)-1))
+    return card
+
+def reset_deck(deck):
+    deck = [["2H",2], ["3H",3], ["4H",4], ["5H",5], ["6H",6], ["7H",7], ["8H",8], ["9H",9], ["10H",10], ["JH",10], ["QH",10], ["KH",10], ["AH",1,11], ["2S",2], ["3S",3], ["4S",4], ["5S",5], ["6S",6], ["7S",7], ["8S",8], ["9S",9], ["10S",10], ["JS",10], ["QS",10], ["KS",10], ["AS",1,11], ["2D",2], ["3D",3], ["4D",4], ["5D",5], ["6D",6], ["7D",7], ["8D",8], ["9D",9], ["10D",10], ["JD",10], ["QD",10], ["KD",10], ["AD",1,11], ["2C",2], ["3C",3], ["4C",4], ["5C",5], ["6C",6], ["7C",7], ["8C",8], ["9C",9], ["10C",10], ["JC",10], ["QC",10], ["KC",10], ["AC",1,11]]
+    return
+
+
 class Player:
-    
     
     def __init__(self, name, chips = 100):
         self.name = name
@@ -13,7 +31,7 @@ class Player:
         self.hand_history = []
         self.hand_value = -1
 
-    def play_hand(self):
+    def get_hand_participantion(self):
     
         money_bet = 0
         playing_hand = False
@@ -32,7 +50,6 @@ class Player:
                         if money_bet <= self.chips:
                             money_confirmed = True
                             bet_confirmed = False
-                            self.chips -= money_bet
                         else:
                             print("You only have {} chips available. Please enter a valid betting amount.".format(self.chips))
                             continue
@@ -42,8 +59,10 @@ class Player:
                     while bet_confirmed == False:
                         bet_confirmation = input("You want to bet {} chips on this hand?(y/n)\n".format(money_bet)).lower().strip()
                         if bet_confirmation == "y":
-                            # self.currenthands.append(Hand(get_first_cards(deck), money_bet))
-                            self.currenthands.append(Hand([["6S",6], ["6H",6]], money_bet))
+                            self.currenthands.append(Hand(get_first_cards(deck), money_bet))
+                            print("{} was dealt the following:".format(self.name))
+                            print(self.currenthands[0])
+                            self.chips -= money_bet
                             money_confirmed = True
                             bet_confirmed = True
                         elif bet_confirmation == "n":
@@ -56,17 +75,90 @@ class Player:
                             continue
             else:
                 print("Please enter y or n.")
+        return
+
+    def play_hands(self):
+        print("{} will now play their hand:".format(self.name))
         #now we actually play the hand
         index = 0
         for hand in self.currenthands:
-            if hand.is_split == True:
+            if hand.is_split:
                 hand.play_split_hand(self, index)
                 index += 1
             else:
                 hand.play_hand(self, index)
                 index += 1
+            if index < len(self.currenthands):
+                print("Next hand:\n")
         return
+
+    def collect_winnings(self, dealers_hand):
+        if len(self.currenthands) == 0:
+            print("{} did not play this hand. Their chips remain at {}".format(self.name,self.chips))
+            return
+        starting_chips = self.chips
+        total_money_bet = 0
+        total_chips_won_from_hands = 0
+        dealers_hand.print_dealer_hand()
+        dealer_is_blackjack = len(dealers_hand.cards) == 2 and dealers_hand.best_hand_value == 21
+        for index in range(0,len(self.currenthands)):
+            result = ""
+            print("Hand " + str(index+1) + ":")
+            print(self.currenthands[index])
+            hand_is_blackjack = len(self.currenthands[index].cards) == 2 and self.currenthands[index].best_hand_value == 21
+            total_money_bet += self.currenthands[index].money_bet
+            if self.currenthands[index].is_bust():
+                result = "Lose"
+                print("You bust with value of {}. Result is a loss of {} chips to the dealer.".format(self.currenthands[index].best_hand_value, self.currenthands[index].money_bet))
+                total_chips_won_from_hands -= self.currenthands[index].money_bet
+            elif dealer_is_blackjack and hand_is_blackjack:
+                result = "Push"
+                total_chips_won_from_hands += self.currenthands[index].money_bet
+                print("Both have blackjack. Result is a push. {} got their {} chips back from this hand.".format(self.name, self.currenthands[index].money_bet))
+            elif dealer_is_blackjack and not hand_is_blackjack:
+                result = "Lose"
+                print("Dealers blackjack wins. Result is a loss. {} lost their {} chips from this hand to the dealer.".format(self.name,self.currenthands[index].money_bet))
+            elif not dealer_is_blackjack and hand_is_blackjack:
+                result = "Blackjack"
+                print("Your Blackjack wins. {} got back their bet of {} plus an extra {}.".format(self.name, self.currenthands[index].money_bet, self.currenthands[index].money_bet*1.5))
+                total_chips_won_from_hands += self.currenthands[index].money_bet*win_multipliers[result]
+            elif dealers_hand.best_hand_value == self.currenthands[index].best_hand_value:
+                result = "Push"
+                total_chips_won_from_hands += self.currenthands[index].money_bet
+                print("Both have same value of {}. Result is a push. {} got their {} chips back from this hand back.".format(dealers_hand.best_hand_value,self.name, self.currenthands[index].money_bet))
+            elif self.currenthands[index].best_hand_value > dealers_hand.best_hand_value or dealers_hand.is_bust():
+                result = "Win"
+                print("Your hand wins. {name} got back their bet of {money_bet} plus an extra {money_bet}.".format(name=self.name, money_bet=self.currenthands[index].money_bet))
+                total_chips_won_from_hands += self.currenthands[index].money_bet*win_multipliers[result]
+            else:
+                result = "Lose"
+                print("Dealer wins. {} lost their {} chips from this hand to the dealer.".format(self.name,self.currenthands[index].money_bet))
+            self.chips += self.currenthands[index].money_bet*win_multipliers[result]
+            self.currenthands[index].money_made = self.currenthands[index].money_bet*win_multipliers[result] - self.currenthands[index].money_bet
+        profits = total_chips_won_from_hands - total_money_bet
+        if profits > 0:
+            print("{} made a total of {} this round.".format(self.name, profits))
+        elif profits < 0:
+            print("{} lost a total of {} this round.".format(self.name, profits*-1))
+        else:
+            print("{} broke even this round.".format(self.name, profits*-1))
+        print("{} still has a total of {} chips available.".format(self.name, self.chips))
+        return
+
+# class Dealer:
+    
+#     def __init__(self,chips =):
+
+
+    
+
+class Game:
+    pass
+    # def __init__(self, players, dealer, ):
         
+
+        
+            
 
 
 class Hand:
@@ -85,7 +177,21 @@ class Hand:
             cards += card[0] + " "
         self.get_value()
         best_current_value = self.get_best_value()
-        return "Your cards:\n" + cards + "\nbest current value: " + str(self.best_hand_value)
+        return "Your cards:\n" + cards + "\nbest value: " + str(self.best_hand_value)
+
+    def print_dealer_hand(self,first = False):
+                if first:
+                    print("Dealers cards:")
+                    print(self.cards[0][0] + " X")
+                    return
+                else:
+                    cards = ""
+                    for card in self.cards:
+                        cards += card[0] + " "
+                    self.get_value()
+                    best_current_value = self.get_best_value()
+                    print("Dealers cards:\n" + cards + "\nbest value: " + str(self.best_hand_value))
+                    return
 
     def get_value(self):
         values = [0]
@@ -152,14 +258,14 @@ class Hand:
         hand2 = Hand([splitting_hand.cards[1],get_single_card(deck)],splitting_hand.money_bet,True)
         player.chips -= splitting_hand.money_bet
         player.currenthands.insert(index,hand1)
-        player.currenthands.insert (index+1,hand2)
+        player.currenthands.insert(index+1,hand2)
         hand1.play_split_hand(player, index)
         return
         
 
     def play_hand(self, player, index = 0):
-        print(self)
         if self.best_hand_value == 21:
+            print(self)
             print("Blackjack!")
             return
         elif self.cards[0][1:] == self.cards[1][1:]and player.chips <= self.money_bet:
@@ -167,6 +273,7 @@ class Hand:
         elif self.cards[0][1:] == self.cards[1][1:]and player.chips >= self.money_bet:
             decision_made = False
             while decision_made == False:
+                print(self)
                 split_decision = input("Would you like to split this hand of value {}?(y/n)\n".format(self.best_hand_value)).lower().strip()
                 if split_decision == "y":
                     decision_confirmation = False
@@ -176,16 +283,31 @@ class Hand:
                             self.split_hand(player, index)
                             return
                         elif split_decision == "n":
+                            decision_made = True
+                            continue
+                        else:
+                            print("Please enter y or n.")
+                            continue
+                elif split_decision == "n":
+                    decision_confirmation = False
+                    while decision_confirmation == False:
+                        print(self)
+                        confirmation = input("Are you sure you don't want to split this hand?(y/n)\n").lower().strip()
+                        if confirmation == "y":
+                            decision_made = True
+                            decision_confirmation = True
+                            break
+                        elif split_decision == "n":
                             decision_confirmation = True
                             continue
                         else:
                             print("Please enter y or n.")
                             continue
         while self.is_bust() == False:
+            print(self)
             action = input("Would you like to hit or sit?(hit/sit)\n").lower().strip()
             if action == "hit":
                 self.hit()
-                continue
             elif action == "sit":
                 self.sit()
                 print("You sat with the following hand:")
@@ -196,19 +318,19 @@ class Hand:
         return
 
     def play_split_hand(self, player, index = 0):
-        print(self)
         if "A" in self.cards[0][0] and "A" not in self.cards[1][0]:
             print(self)
             print("Since you split aces this is as far as you can go with this hand.")
             return
         if self.cards[0][1:] == self.cards[1][1:] and player.chips >= self.money_bet:
+            print(self)
             split_decision = False
             while split_decision == False:
-                split_choice = input("Would you like to split again?(y/n)").lower().strip()
+                split_choice = input("Would you like to split again?(y/n)\n").lower().strip()
                 if split_choice == "y":
                     confirmation = False
                     while confirmation == False:
-                        confirm = input("Are you sure you want to split this hand of value{}?(y/n)\n".format(self.best_hand_value)).lower().strip()
+                        confirm = input("Are you sure you want to split this hand of value {}?(y/n)\n".format(self.best_hand_value)).lower().strip()
                         if confirm == "y":
                             self.split_hand(player, index)
                             return
@@ -236,34 +358,49 @@ class Hand:
         return
 
 
-def get_first_cards(deck):
-        card1 = deck.pop(random.randint(0,len(deck)-1))
-        card2 = deck.pop(random.randint(0,len(deck)-1))
-        return [card1,card2]
+    def play_dealer_hand(self):
+        self.print_dealer_hand()
+        if self.best_hand_value == 21:
+            print("Blackjack. Dealer sits.")
+            return
+        while self.best_hand_value < 17:
+            print("Dealer hits.")
+            self.cards.append(get_single_card(deck))
+            self.print_dealer_hand()
+            if self.is_bust():
+                print("Bust.")
+                return
+        print("Dealer sits with hand value of {}.".format(self.best_hand_value)) 
+        return
 
-def get_single_card(deck):
-    card = deck.pop(random.randint(0,len(deck)-1))
-    return card
+    
+    
 
-def reset_deck(deck):
-    deck = [["2H",2], ["3H",3], ["4H",4], ["5H",5], ["6H",6], ["7H",7], ["8H",8], ["9H",9], ["10H",10], ["JH",10], ["QH",10], ["KH",10], ["AH",1,11], ["2S",2], ["3S",3], ["4S",4], ["5S",5], ["6S",6], ["7S",7], ["8S",8], ["9S",9], ["10S",10], ["JS",10], ["QS",10], ["KS",10], ["AS",1,11], ["2D",2], ["3D",3], ["4D",4], ["5D",5], ["6D",6], ["7D",7], ["8D",8], ["9D",9], ["10D",10], ["JD",10], ["QD",10], ["KD",10], ["AD",1,11], ["2C",2], ["3C",3], ["4C",4], ["5C",5], ["6C",6], ["7C",7], ["8C",8], ["9C",9], ["10C",10], ["JC",10], ["QC",10], ["KC",10], ["AC",1,11]]
-    return
+
+
+
+
+
+
+
+
+
     
 
 
 
     
 reset_deck(deck)
-test_player = Player("zestyboy", 1000000)
-test_player.play_hand()
-for index in range(0,len(test_player.currenthands)):
-    print(test_player.currenthands[index])
-    if index == len(test_player.currenthands)-1:
-        break
-    print("Next hand:\n")      
-# test_hand = Hand(get_first_cards(deck),100)
-# test_hand.play_hand()
+test_player = Player("test_player")
+test_player.get_hand_participantion()
+test_dealer_hand = Hand(get_first_cards(deck))
+test_dealer_hand.print_dealer_hand(True)
+test_player.play_hands()
+test_dealer_hand.play_dealer_hand()
+test_player.collect_winnings(test_dealer_hand)
 
+
+test_hand2 = Hand()
 
 
 
