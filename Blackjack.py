@@ -3,7 +3,7 @@ import random
 
 deck = [["2H",2], ["3H",3], ["4H",4], ["5H",5], ["6H",6], ["7H",7], ["8H",8], ["9H",9], ["10H",10], ["JH",10], ["QH",10], ["KH",10], ["AH",1,11], ["2S",2], ["3S",3], ["4S",4], ["5S",5], ["6S",6], ["7S",7], ["8S",8], ["9S",9], ["10S",10], ["JS",10], ["QS",10], ["KS",10], ["AS",1,11], ["2D",2], ["3D",3], ["4D",4], ["5D",5], ["6D",6], ["7D",7], ["8D",8], ["9D",9], ["10D",10], ["JD",10], ["QD",10], ["KD",10], ["AD",1,11], ["2C",2], ["3C",3], ["4C",4], ["5C",5], ["6C",6], ["7C",7], ["8C",8], ["9C",9], ["10C",10], ["JC",10], ["QC",10], ["KC",10], ["AC",1,11]]
 
-win_multipliers = {"Lose":0, "Win": 2, "Blackjack": 2.5, "Push": 1}
+win_multipliers = {"Lose": -1, "Win": 1, "Blackjack": 1.5, "Push": 0}
 
 min_bet = 10
 max_bet = 100
@@ -37,10 +37,10 @@ class Player:
         playing_hand = False
         while playing_hand == False:
             play_hand = input("Would {} like to play this hand? (y/n):\n".format(self.name).lower().strip())
-            if play_hand == "n":
+            if play_hand == "n" or play_hand == "no":
                 print("{} sits this hand out.".format(self.name))
                 return
-            elif play_hand == "y":
+            elif play_hand == "y" or play_hand == "yes":
                 playing_hand = True
                 money_confirmed = False
                 bet_confirmed = False
@@ -58,14 +58,13 @@ class Player:
                         continue
                     while bet_confirmed == False:
                         bet_confirmation = input("You want to bet {} chips on this hand?(y/n)\n".format(money_bet)).lower().strip()
-                        if bet_confirmation == "y":
+                        if bet_confirmation == "y" or bet_confirmation == "yes":
                             self.currenthands.append(Hand(get_first_cards(deck), money_bet))
                             print("{} was dealt the following:".format(self.name))
                             print(self.currenthands[0])
-                            self.chips -= money_bet
                             money_confirmed = True
                             bet_confirmed = True
-                        elif bet_confirmation == "n":
+                        elif bet_confirmation == "n" or bet_confirmation == "no":
                             print("Please enter the value you intended.")
                             money_confirmed = False
                             bet_confirmed = False
@@ -97,8 +96,6 @@ class Player:
             print("{} did not play this hand. Their chips remain at {}".format(self.name,self.chips))
             return
         starting_chips = self.chips
-        total_money_bet = 0
-        total_chips_won_from_hands = 0
         dealers_hand.print_dealer_hand()
         dealer_is_blackjack = len(dealers_hand.cards) == 2 and dealers_hand.best_hand_value == 21
         for index in range(0,len(self.currenthands)):
@@ -106,43 +103,37 @@ class Player:
             print("Hand " + str(index+1) + ":")
             print(self.currenthands[index])
             hand_is_blackjack = len(self.currenthands[index].cards) == 2 and self.currenthands[index].best_hand_value == 21
-            total_money_bet += self.currenthands[index].money_bet
             if self.currenthands[index].is_bust():
                 result = "Lose"
                 print("You bust with value of {}. Result is a loss of {} chips to the dealer.".format(self.currenthands[index].best_hand_value, self.currenthands[index].money_bet))
-                total_chips_won_from_hands -= self.currenthands[index].money_bet
             elif dealer_is_blackjack and hand_is_blackjack:
                 result = "Push"
-                total_chips_won_from_hands += self.currenthands[index].money_bet
                 print("Both have blackjack. Result is a push. {} got their {} chips back from this hand.".format(self.name, self.currenthands[index].money_bet))
             elif dealer_is_blackjack and not hand_is_blackjack:
                 result = "Lose"
                 print("Dealers blackjack wins. Result is a loss. {} lost their {} chips from this hand to the dealer.".format(self.name,self.currenthands[index].money_bet))
             elif not dealer_is_blackjack and hand_is_blackjack:
                 result = "Blackjack"
-                print("Your Blackjack wins. {} got back their bet of {} plus an extra {}.".format(self.name, self.currenthands[index].money_bet, self.currenthands[index].money_bet*1.5))
-                total_chips_won_from_hands += self.currenthands[index].money_bet*win_multipliers[result]
+                print("Your Blackjack wins. {} got back their bet of {} plus an extra {}.".format(self.name, self.currenthands[index].money_bet, self.currenthands[index].money_bet*win_multipliers[result]))
             elif dealers_hand.best_hand_value == self.currenthands[index].best_hand_value:
                 result = "Push"
-                total_chips_won_from_hands += self.currenthands[index].money_bet
                 print("Both have same value of {}. Result is a push. {} got their {} chips back from this hand back.".format(dealers_hand.best_hand_value,self.name, self.currenthands[index].money_bet))
             elif self.currenthands[index].best_hand_value > dealers_hand.best_hand_value or dealers_hand.is_bust():
                 result = "Win"
                 print("Your hand wins. {name} got back their bet of {money_bet} plus an extra {money_bet}.".format(name=self.name, money_bet=self.currenthands[index].money_bet))
-                total_chips_won_from_hands += self.currenthands[index].money_bet*win_multipliers[result]
             else:
                 result = "Lose"
                 print("Dealer wins. {} lost their {} chips from this hand to the dealer.".format(self.name,self.currenthands[index].money_bet))
-            self.chips += self.currenthands[index].money_bet*win_multipliers[result]
-            self.currenthands[index].money_made = self.currenthands[index].money_bet*win_multipliers[result] - self.currenthands[index].money_bet
-        profits = total_chips_won_from_hands - total_money_bet
+            self.currenthands[index].money_made = self.currenthands[index].money_bet*win_multipliers[result]
+            self.chips += self.currenthands[index].money_made
+        profits = self.chips - starting_chips
         if profits > 0:
             print("{} made a total of {} this round.".format(self.name, profits))
         elif profits < 0:
             print("{} lost a total of {} this round.".format(self.name, profits*-1))
         else:
-            print("{} broke even this round.".format(self.name, profits*-1))
-        print("{} still has a total of {} chips available.".format(self.name, self.chips))
+            print("{} broke even this round.".format(self.name))
+        print("{} has a total of {} chips available.".format(self.name, self.chips))
         return
 
 # class Dealer:
@@ -219,9 +210,9 @@ class Hand:
         confirmed = False
         while confirmed == False:
             confirmation_decision = input("Confirming that you would like to hit with this hand of current value {}?(y/n)\n".format(self.best_hand_value)).lower().strip()
-            if confirmation_decision == "y":
+            if confirmation_decision == "y" or confirmation_decision == "yes":
                 confirmed = True
-            elif confirmation_decision == "n":
+            elif confirmation_decision == "n" or confirmation_decision == "no":
                 print("What would you like to do with this hand?")
                 return
             else:
@@ -237,9 +228,9 @@ class Hand:
         confirmed = False
         while confirmed == False:
             confirmation_decision = input("Confirming that you would like to sit with this hand of current value {}?(y/n)\n".format(self.best_hand_value)).lower().strip()
-            if confirmation_decision == "y":
+            if confirmation_decision == "y" or confirmation_decision == "yes":
                 confirmed = True
-            elif confirmation_decision == "n":
+            elif confirmation_decision == "n" or confirmation_decision == "no":
                 print("What would you like to do with this hand?")
                 return
             else:
@@ -275,29 +266,29 @@ class Hand:
             while decision_made == False:
                 print(self)
                 split_decision = input("Would you like to split this hand of value {}?(y/n)\n".format(self.best_hand_value)).lower().strip()
-                if split_decision == "y":
+                if split_decision == "y" or split_decision == "yes":
                     decision_confirmation = False
                     while decision_confirmation == False:
-                        confirmation = input("Are you sure you want to split this hand?(y/n)\n").lower().strip()
-                        if confirmation == "y":
+                        yes_confirmation = input("Are you sure you want to split this hand?(y/n)\n").lower().strip()
+                        if yes_confirmation == "y" or yes_confirmation == "yes":
                             self.split_hand(player, index)
                             return
-                        elif split_decision == "n":
-                            decision_made = True
+                        elif yes_confirmation == "n" or yes_confirmation == "no":
+                            decision_confirmation = True
                             continue
                         else:
                             print("Please enter y or n.")
                             continue
-                elif split_decision == "n":
+                elif split_decision == "n" or split_decision == "no":
                     decision_confirmation = False
                     while decision_confirmation == False:
                         print(self)
                         confirmation = input("Are you sure you don't want to split this hand?(y/n)\n").lower().strip()
-                        if confirmation == "y":
+                        if confirmation == "y" or confirmation == "yes":
                             decision_made = True
                             decision_confirmation = True
                             break
-                        elif split_decision == "n":
+                        elif split_decision == "n" or split_decision == "no":
                             decision_confirmation = True
                             continue
                         else:
@@ -327,27 +318,27 @@ class Hand:
             split_decision = False
             while split_decision == False:
                 split_choice = input("Would you like to split again?(y/n)\n").lower().strip()
-                if split_choice == "y":
+                if split_choice == "y" or split_choice == "yes":
                     confirmation = False
                     while confirmation == False:
                         confirm = input("Are you sure you want to split this hand of value {}?(y/n)\n".format(self.best_hand_value)).lower().strip()
-                        if confirm == "y":
+                        if confirm == "y" or confirm == "yes":
                             self.split_hand(player, index)
                             return
-                        elif confirm == "n":
+                        elif confirm == "n" or confirm == "no":
                             confirmation = True
                             continue
                         else:
                             print("Please enter y or n.")
-                elif split_decision == "n":
+                elif split_decision == "n" or split_decision == "no":
                     confirmation = False
                     while confirmation == False:
                         confirm = input("Are you sure you don't want to split this hand of value{}?(y/n)\n".format(self.best_hand_value)).lower().strip()
-                        if confirm == "y":
+                        if confirm == "y" or confirm == "yes":
                             confirmation = True
                             split_decision = True
                             continue
-                        elif confirm == "n":
+                        elif confirm == "n" or confirm == "no":
                             confirmation = True
                             continue
                         else:
@@ -391,7 +382,7 @@ class Hand:
 
     
 reset_deck(deck)
-test_player = Player("test_player")
+test_player = Player("nuggetfucker8000")
 test_player.get_hand_participantion()
 test_dealer_hand = Hand(get_first_cards(deck))
 test_dealer_hand.print_dealer_hand(True)
@@ -400,7 +391,7 @@ test_dealer_hand.play_dealer_hand()
 test_player.collect_winnings(test_dealer_hand)
 
 
-test_hand2 = Hand()
+
 
 
 
