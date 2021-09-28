@@ -52,9 +52,21 @@ class Player:
                 while money_confirmed == False and bet_confirmed == False:
                     try:
                         money_bet = int(input("You have {} chips. How much would you like to bet on this hand?\n".format(self.chips)))
-                        if money_bet <= self.chips and money_bet%10 == 0:
+                        if money_bet <= self.chips and money_bet%10 == 0 and money_bet >= min_bet and money_bet <= max_bet:
                             money_confirmed = True
                             bet_confirmed = False
+                        elif money_bet == 0:
+                            print("No risk no reward. You need to bet something. Please enter a multiple of 10 that is between {} and {}.".format(min_bet, max_bet))
+                            continue
+                        elif money_bet < 0:
+                            print("Nice try I thought of that. Please enter a multiple of 10 that is between {} and {}.".format(min_bet, max_bet))
+                            continue
+                        elif money_bet > 100:
+                            print("Calm down Mr Packer we can only take bets between {} and {}.".format(min_bet, max_bet))
+                            continue
+                        elif money_bet < 10:
+                            print("Come on cheepskate you need to bet between {} and {}.".format(min_bet, max_bet))
+                            continue
                         else:
                             print("You have {} chips available. Please enter a multiple of 10 that is between {} and {}.".format(self.chips, min_bet, max_bet))
                             continue
@@ -201,6 +213,9 @@ for the duration of the game.
                 chips = int(input("Please enter how many chips {} is starting with:\n".format(players_name)))
                 if chips < min_bet:
                     print("You need at least 10 chips to sit at the table.")
+                    continue
+                elif chips < 0:
+                    print("You can't have negative chips I'm afraid.")
                     continue
             except ValueError:
                 print("Please enter an integer value of at least 10.")
@@ -364,6 +379,7 @@ class Hand:
         hand2 = Hand([splitting_hand.cards[1],get_single_card(deck)],splitting_hand.money_bet,True)
         player.currenthands.insert(index,hand1)
         player.currenthands.insert(index+1,hand2)
+        print("Hand {}:".format(index+1))
         hand1.play_split_hand(player, index)
         return
         
@@ -437,6 +453,7 @@ with your current hand value and put it up against the dealer.
         return
 
     def play_split_hand(self, player, index = 0):
+        print("Hand {}:".format(index+1))
         if "A" in self.cards[0][0] and "A" not in self.cards[1][0]:
             print(self)
             print("Since you split aces this is as far as you can go with this hand.")
@@ -510,7 +527,7 @@ def play_game():
             print("""
 The rules of Blackjack are as follows:
 
-The aim of Blackjack is to get a hand value that beats the dealer whilst strill remaining equal or less than 21. 
+The aim of Blackjack is to get a hand value that beats the dealer whilst still remaining equal or less than 21. 
 The values of each card is as follows:
 
 - Cards 2-10 have values equal to their number
@@ -525,8 +542,7 @@ is face up and visible to all players.
 
 THE PLAYERS TURN:
 
-In normal Blackjack each player takes an action in a clockwise direction but to avoid players constantly 
-switching seats in front of the computer each player will complete all the actions for their hand before 
+Each player will complete all the actions for their hand before 
 moving onto the next player. The actions a player can take include the following:
 
 Hit:
@@ -605,7 +621,7 @@ they can be found in the README.txt file. Happy playing :)
         elif see_rules == "n" or see_rules == "no":
             confirmed_decision = False
             while confirmed_decision == False:
-                rules_confirmation = input("Are you sure you don't want to see the rules?").lower().strip()
+                rules_confirmation = input("Are you sure you don't want to see the rules?\n").lower().strip()
                 if rules_confirmation == "yes" or rules_confirmation == "y":
                     print("If you need help at any point you can enter \"help\" or \"?\" into the terminal. Or you can see the rules\nin the README.txt file.")  
                     confirmed_decision = True
@@ -638,25 +654,24 @@ they can be found in the README.txt file. Happy playing :)
                 print("{} only has {} chips left. Hopefully that's enough for the bus home.".format(player.name, player.chips))
                 print("{} has now left the table.".format(player.name))
                 players.pop(index)
-                break
             elif player.chips == 0:
                 print("{} only has no chips left. Hopefully someone will lend you the money to get home.".format(player.name))
                 print("{} has now left the table.".format(player.name))
                 players.pop(index)
-                break
             else:
                 index += 1
         another_round = False
         while another_round == False:
-            play_another = input("Are we playing another round gang?(y/n)\n").lower().strip()
+            play_another = input("Are we playing another round?(y/n)\n").lower().strip()
             if play_another == "yes" or play_another == "y":
                 another_round = True
             elif play_another == "no" or play_another == "n":
                 another_confirmation = False
                 while another_confirmation == False:
-                    confirmation = input("Are you sure we're not playing another round?(y/n)").lower().strip()
+                    confirmation = input("Are you sure we're not playing another round?(y/n)\n").lower().strip()
                     if confirmation == "yes" or confirmation == "y":
                         another_confirmation = True
+                        another_round = True
                         keep_going = False
                     elif confirmation == "no" or confirmation == "n":
                         another_confirmation = True
@@ -666,5 +681,6 @@ they can be found in the README.txt file. Happy playing :)
                 print("Please enter y or n.")
 
 play_game()
+
 
 
