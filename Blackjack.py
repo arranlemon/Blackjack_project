@@ -29,7 +29,7 @@ class Player:
         self.name = name
         self.currenthands = []
         self.chips = chips
-        self.hand_history = []
+        self.starting_chips = chips
         self.hand_value = -1
 
     def __repr__(self):
@@ -37,7 +37,6 @@ class Player:
         return return_string
 
     def get_hand_participation(self):
-    
         money_bet = 0
         playing_hand = False
         while playing_hand == False:
@@ -170,12 +169,20 @@ bet is 10 and the maximum bet is 100. All bets must be a multiple of 10.
         print("{} has a total of {} chips available.".format(self.name, self.chips))
         return
 
-    def store_hands(self):
-        while len(self.currenthands) != 0:
-            temp_hand = self.currenthands.pop(0)
-            self.hand_history.append(temp_hand)
+    def clear_hands(self):
+        self.currenthands = []
         return
 
+    def leave_table(self):
+        profits = self.chips - self.starting_chips
+        print("\n{}:".format(self.name))
+        if profits > 0:
+            print("{name} cashes out with {starting_chips} chips.\n{name} made {profits} at the table.".format(name = self.name, starting_chips = self.starting_chips, profits = profits))
+        elif profits == 0:
+            print("{name} cashes out with {starting_chips} chips.\n{name} broke  even at the table.".format(name = self.name, starting_chips = self.starting_chips))
+        else:
+            print("{name} cashes out with {starting_chips} chips.\n{name} lost {profits} at the table.".format(name = self.name, starting_chips = self.starting_chips, profits = profits*-1))
+        return
 
 
 
@@ -244,7 +251,7 @@ This is fake money so don't worry about not making rent this week.
             return players
         keep_going = False
         while keep_going == False:
-            more = input("Are there more people wanting to play?(y/n)").lower().strip()
+            more = input("Are there more people wanting to play?(y/n)\n").lower().strip()
             if more == "yes" or more == "y":
                 confirmed_more = False
                 while confirmed_more == False:
@@ -279,6 +286,9 @@ and number of chips then say no and begin playing Blackjack.
                 print("Please enter yes or no.")
                 confirmed_no_more = True
     return players
+
+    
+
 
 
 
@@ -343,16 +353,16 @@ class Hand:
             confirmation_decision = input("Confirming that you would like to hit with this hand of current value {}?(y/n)\n".format(self.best_hand_value)).lower().strip()
             if confirmation_decision == "y" or confirmation_decision == "yes":
                 confirmed = True
+                self.cards.append(get_single_card(deck))
+                print(self)
+                if self.is_bust():
+                    print("Bust.")
             elif confirmation_decision == "n" or confirmation_decision == "no":
-                print("What would you like to do with this hand?")
-                return
+                print("Please enter the action you intended.")
+                return False
             else:
                 print("Please enter y or n.")
-        self.cards.append(get_single_card(deck))
-        print(self)
-        if self.is_bust():
-            print("Bust.")
-        return 
+        return True
 
 
     def sit(self):
@@ -362,11 +372,11 @@ class Hand:
             if confirmation_decision == "y" or confirmation_decision == "yes":
                 confirmed = True
             elif confirmation_decision == "n" or confirmation_decision == "no":
-                print("What would you like to do with this hand?")
-                return
+                print("Please enter the action you intended.")
+                return False
             else:
                 print("Please enter y or n.")
-        return
+        return True
 
     def is_bust(self):
         if self.best_hand_value > 21:
@@ -385,6 +395,7 @@ class Hand:
         
 
     def play_hand(self, player, index = 0):
+        self.get_best_value()
         if self.best_hand_value == 21:
             print(self)
             print("Blackjack!")
@@ -431,16 +442,18 @@ the two cards in your existng hand and turning them into two separate hands.
 It will also involve betting {} chips again.""".format(self.money_bet))
                 else:
                     print("Please enter y or n.")
-        while self.is_bust() == False:
+        confirmed_action = False
+        while self.is_bust() == False or confirmed_action == False:
             print(self)
             action = input("Would you like to hit or sit?(hit/sit)\n").lower().strip()
             if action == "hit":
-                self.hit()
+                confirmed_action = self.hit()
             elif action == "sit":
-                self.sit()
-                print("You sat with the following hand:")
-                print(self)
-                return
+                confirmed_action = self.sit()
+                if confirmed_action == True:
+                    print("You sat with the following hand:")
+                    print(self)
+                    return
             elif action == "help" or action == "?":
                 print("""
 If you HIT you will be dealt another card by the dealer. This has
@@ -649,7 +662,7 @@ they can be found in the README.txt file. Happy playing :)
         index = 0
         for player in players:
             player.collect_winnings(test_dealer_hand)
-            player.store_hands()
+            player.clear_hands()
             if player.chips < 10 and player.chips > 0:
                 print("{} only has {} chips left. Hopefully that's enough for the bus home.".format(player.name, player.chips))
                 print("{} has now left the table.".format(player.name))
@@ -673,6 +686,8 @@ they can be found in the README.txt file. Happy playing :)
                         another_confirmation = True
                         another_round = True
                         keep_going = False
+                        for player in players:
+                            player.leave_table()
                     elif confirmation == "no" or confirmation == "n":
                         another_confirmation = True
                     else:
@@ -680,7 +695,6 @@ they can be found in the README.txt file. Happy playing :)
             else:
                 print("Please enter y or n.")
 
+
+
 play_game()
-
-
-
