@@ -177,11 +177,11 @@ bet is 10 and the maximum bet is 100. All bets must be a multiple of 10.
         profits = self.chips - self.starting_chips
         print("\n{}:".format(self.name))
         if profits > 0:
-            print("{name} cashes out with {starting_chips} chips.\n{name} made {profits} at the table.".format(name = self.name, starting_chips = self.starting_chips, profits = profits))
+            print("{name} cashes out with {chips} chips.\n{name} made {profits} at the table.".format(name = self.name, chips = self.chips, profits = profits))
         elif profits == 0:
-            print("{name} cashes out with {starting_chips} chips.\n{name} broke  even at the table.".format(name = self.name, starting_chips = self.starting_chips))
+            print("{name} cashes out with {chips} chips.\n{name} broke even at the table.".format(name = self.name, chips = self.chips))
         else:
-            print("{name} cashes out with {starting_chips} chips.\n{name} lost {profits} at the table.".format(name = self.name, starting_chips = self.starting_chips, profits = profits*-1))
+            print("{name} cashes out with {chips} chips.\n{name} lost {profits} at the table.".format(name = self.name, chips = self.chips, profits = profits*-1))
         return
 
 
@@ -651,6 +651,9 @@ they can be found in the README.txt file. Happy playing :)
         test_dealer_hand.print_dealer_hand(True)
         i = 0
         for player in players:
+            if len(player.current_hands) == 0:
+                print("{} sat this hand out.".format(player.name))
+                continue
             print("{} will now play their hands.".format(player.name))
             for hand in player.currenthands:
                 if hand.is_split == True:
@@ -661,6 +664,7 @@ they can be found in the README.txt file. Happy playing :)
         test_dealer_hand.play_dealer_hand()
         index = 0
         for player in players:
+
             player.collect_winnings(test_dealer_hand)
             player.clear_hands()
             if player.chips < 10 and player.chips > 0:
