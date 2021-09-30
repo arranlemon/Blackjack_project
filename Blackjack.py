@@ -39,7 +39,7 @@ class Player:
         money_bet = 0
         playing_hand = False
         while playing_hand == False:
-            play_hand = input("Would {} like to play this hand? (y/n):\n".format(self.name).lower().strip())
+            play_hand = input("Would {} like to play this hand?(y/n):\n".format(self.name).lower().strip())
             if play_hand == "n" or play_hand == "no":
                 print("{} sits this hand out.".format(self.name))
                 return
@@ -353,8 +353,8 @@ class Hand:
             if confirmation_decision == "y" or confirmation_decision == "yes":
                 confirmed = True
                 self.cards.append(get_single_card(deck))
-                print(self)
                 if self.is_bust():
+                    print(self)
                     print("Bust.")
             elif confirmation_decision == "n" or confirmation_decision == "no":
                 print("Please enter the action you intended.")
@@ -654,7 +654,7 @@ they can be found in the README.txt file. Happy playing :)
             i = 0
             for player in players:
                 player.play_hands()
-                test_dealer_hand.play_dealer_hand()
+            test_dealer_hand.play_dealer_hand()
             index = 0
             for player in players:
                 player.collect_winnings(test_dealer_hand)
