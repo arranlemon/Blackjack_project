@@ -30,7 +30,6 @@ class Player:
         self.currenthands = []
         self.chips = chips
         self.starting_chips = chips
-        self.hand_value = -1
 
     def __repr__(self):
         return_string = "Players name: {}\nPlayers chips: {}\n".format(self.name,self.chips)
@@ -109,7 +108,7 @@ bet is 10 and the maximum bet is 100. All bets must be a multiple of 10.
         return
 
     def play_hands(self):
-        print("{} will now play their hand:".format(self.name))
+        print("{} will now play their hands:".format(self.name))
         #now we actually play the hand
         index = 0
         for hand in self.currenthands:
@@ -389,7 +388,6 @@ class Hand:
         hand2 = Hand([splitting_hand.cards[1],get_single_card(deck)],splitting_hand.money_bet,True)
         player.currenthands.insert(index,hand1)
         player.currenthands.insert(index+1,hand2)
-        print("Hand {}:".format(index+1))
         hand1.play_split_hand(player, index)
         return
         
@@ -523,9 +521,9 @@ have the option to split again. This of course requires betting
             print("Dealer hits.")
             self.cards.append(get_single_card(deck))
             self.print_dealer_hand()
-            if self.is_bust():
-                print("Bust.")
-                return
+        if self.is_bust():
+            print("Bust.")
+            return
         print("Dealer sits with hand value of {}.".format(self.best_hand_value)) 
         return
 
@@ -647,36 +645,32 @@ they can be found in the README.txt file. Happy playing :)
         reset_deck(deck)
         for player in players:
             player.get_hand_participation()
-        test_dealer_hand = Hand(get_first_cards(deck))
-        test_dealer_hand.print_dealer_hand(True)
-        i = 0
+        hands_being_played = 0
         for player in players:
-            if len(player.current_hands) == 0:
-                print("{} sat this hand out.".format(player.name))
-                continue
-            print("{} will now play their hands.".format(player.name))
-            for hand in player.currenthands:
-                if hand.is_split == True:
-                    hand.play_split_hand(player, i)
-                    i += 1
+            hands_being_played += len(player.currenthands)
+        if hands_being_played != 0:
+            test_dealer_hand = Hand(get_first_cards(deck))
+            test_dealer_hand.print_dealer_hand(True)
+            i = 0
+            for player in players:
+                player.play_hands()
+                test_dealer_hand.play_dealer_hand()
+            index = 0
+            for player in players:
+                player.collect_winnings(test_dealer_hand)
+                player.clear_hands()
+                if player.chips < 10 and player.chips > 0:
+                    print("{} only has {} chips left. Hopefully that's enough for the bus home.".format(player.name, player.chips))
+                    print("{} has now left the table.".format(player.name))
+                    players.pop(index)
+                elif player.chips == 0:
+                    print("{} only has no chips left. Hopefully someone will lend you the money to get home.".format(player.name))
+                    print("{} has now left the table.".format(player.name))
+                    players.pop(index)
                 else:
-                    hand.play_hand(player,i)
-        test_dealer_hand.play_dealer_hand()
-        index = 0
-        for player in players:
-
-            player.collect_winnings(test_dealer_hand)
-            player.clear_hands()
-            if player.chips < 10 and player.chips > 0:
-                print("{} only has {} chips left. Hopefully that's enough for the bus home.".format(player.name, player.chips))
-                print("{} has now left the table.".format(player.name))
-                players.pop(index)
-            elif player.chips == 0:
-                print("{} only has no chips left. Hopefully someone will lend you the money to get home.".format(player.name))
-                print("{} has now left the table.".format(player.name))
-                players.pop(index)
-            else:
-                index += 1
+                    index += 1
+        else:
+            print("Nobody played this round.")
         another_round = False
         while another_round == False:
             play_another = input("Are we playing another round?(y/n)\n").lower().strip()
@@ -698,6 +692,7 @@ they can be found in the README.txt file. Happy playing :)
                         print("Please enter y or n.")
             else:
                 print("Please enter y or n.")
+    print("Thanks for playing :)")
 
 
 
