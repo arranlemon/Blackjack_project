@@ -39,7 +39,7 @@ class Player:
         money_bet = 0
         playing_hand = False
         while playing_hand == False:
-            play_hand = input("Would {} like to play this hand?(y/n):\n".format(self.name).lower().strip())
+            play_hand = input("Would {} like to play this hand?(y/n):\n".format(self.name)).lower().strip()
             if play_hand == "n" or play_hand == "no":
                 print("{} sits this hand out.".format(self.name))
                 return
@@ -156,7 +156,7 @@ bet is 10 and the maximum bet is 100. All bets must be a multiple of 10.
             else:
                 result = "Lose"
                 print("Dealer wins. {} lost their {} chips from this hand to the dealer.".format(self.name,self.currenthands[index].money_bet))
-            self.currenthands[index].money_made = self.currenthands[index].money_bet*win_multipliers[result]
+            self.currenthands[index].money_made = int(self.currenthands[index].money_bet*win_multipliers[result])
             self.chips += self.currenthands[index].money_made
         profits = self.chips - starting_chips
         if profits > 0:
