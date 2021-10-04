@@ -2,8 +2,6 @@
 from random import randint
 from time import sleep
 
-deck = [["2H",2], ["3H",3], ["4H",4], ["5H",5], ["6H",6], ["7H",7], ["8H",8], ["9H",9], ["10H",10], ["JH",10], ["QH",10], ["KH",10], ["AH",1,11], ["2S",2], ["3S",3], ["4S",4], ["5S",5], ["6S",6], ["7S",7], ["8S",8], ["9S",9], ["10S",10], ["JS",10], ["QS",10], ["KS",10], ["AS",1,11], ["2D",2], ["3D",3], ["4D",4], ["5D",5], ["6D",6], ["7D",7], ["8D",8], ["9D",9], ["10D",10], ["JD",10], ["QD",10], ["KD",10], ["AD",1,11], ["2C",2], ["3C",3], ["4C",4], ["5C",5], ["6C",6], ["7C",7], ["8C",8], ["9C",9], ["10C",10], ["JC",10], ["QC",10], ["KC",10], ["AC",1,11]]
-
 win_multipliers = {"Lose": -1, "Win": 1, "Blackjack": 1.5, "Push": 0}
 
 min_bet = 10
@@ -36,7 +34,7 @@ class Player:
         return_string = "Players name: {}\nPlayers chips: {}\n".format(self.name,self.chips)
         return return_string
 
-    def get_hand_participation(self):
+    def get_hand_participation(self, deck):
         money_bet = 0
         playing_hand = False
         while playing_hand == False:
@@ -109,17 +107,17 @@ bet is 10 and the maximum bet is 100. All bets must be a multiple of 10.
                 print("Please enter y or n.")
         return
 
-    def play_hands(self):
+    def play_hands(self, deck):
         print("{} will now play their hands:".format(self.name))
         sleep(1.5)
         #now we actually play the hand
         index = 0
         for hand in self.currenthands:
             if hand.is_split:
-                hand.play_split_hand(self, index)
+                hand.play_split_hand(self, deck, index)
                 index += 1
             else:
-                hand.play_hand(self, index)
+                hand.play_hand(self, deck, index)
                 index += 1
             if index < len(self.currenthands):
                 print("Next hand:")
@@ -133,6 +131,7 @@ bet is 10 and the maximum bet is 100. All bets must be a multiple of 10.
             return
         starting_chips = self.chips
         print("{} will now evaluate their hands:".format(self.name))
+        sleep(2)
         dealers_hand.print_dealer_hand()
         sleep(2)
         dealer_is_blackjack = len(dealers_hand.cards) == 2 and dealers_hand.best_hand_value == 21
@@ -175,6 +174,7 @@ bet is 10 and the maximum bet is 100. All bets must be a multiple of 10.
         else:
             print("{} broke even this round.".format(self.name))
         print("{} has a total of {} chips available.".format(self.name, self.chips))
+        sleep(2)
         return
 
     def clear_hands(self):
@@ -355,7 +355,7 @@ class Hand:
                     self.best_hand_value = self.hand_values[index]
             return
 
-    def hit(self):
+    def hit(self,deck):
         confirmed = False
         while confirmed == False:
             confirmation_decision = input("Confirming that you would like to hit with this hand of current value {}?(y/n)\n".format(self.best_hand_value)).lower().strip()
@@ -391,17 +391,17 @@ class Hand:
             return True
         return False
 
-    def split_hand(self,player,index = 0):
+    def split_hand(self,player,deck,index = 0):
         splitting_hand = player.currenthands.pop(index)
         hand1 = Hand([splitting_hand.cards[0],get_single_card(deck)],splitting_hand.money_bet,True)
         hand2 = Hand([splitting_hand.cards[1],get_single_card(deck)],splitting_hand.money_bet,True)
         player.currenthands.insert(index,hand1)
         player.currenthands.insert(index+1,hand2)
-        hand1.play_split_hand(player, index)
+        hand1.play_split_hand(player, deck, index)
         return
         
 
-    def play_hand(self, player, index = 0):
+    def play_hand(self, player,deck, index = 0):
         self.get_best_value()
         if self.best_hand_value == 21:
             print(self)
@@ -419,7 +419,7 @@ class Hand:
                     while decision_confirmation == False:
                         yes_confirmation = input("Are you sure you want to split this hand?(y/n)\n").lower().strip()
                         if yes_confirmation == "y" or yes_confirmation == "yes":
-                            self.split_hand(player, index)
+                            self.split_hand(player, deck, index)
                             return
                         elif yes_confirmation == "n" or yes_confirmation == "no":
                             decision_confirmation = True
@@ -454,7 +454,7 @@ It will also involve betting {} chips again.""".format(self.money_bet))
         while self.is_bust() == False or confirmed_action == False:
             action = input("Would you like to hit or sit?(hit/sit)\n").lower().strip()
             if action == "hit":
-                confirmed_action = self.hit()
+                confirmed_action = self.hit(deck)
             elif action == "sit":
                 confirmed_action = self.sit()
                 if confirmed_action == True:
@@ -472,7 +472,7 @@ with your current hand value and put it up against the dealer.
                 print("Please enter hit or sit.")
         return
 
-    def play_split_hand(self, player, index = 0):
+    def play_split_hand(self, player, deck, index = 0):
         print("Hand {}:".format(index+1))
         if "A" in self.cards[0][0] and "A" not in self.cards[1][0]:
             print(self)
@@ -488,7 +488,7 @@ with your current hand value and put it up against the dealer.
                     while confirmation == False:
                         confirm = input("Are you sure you want to split this hand of value {}?(y/n)\n".format(self.best_hand_value)).lower().strip()
                         if confirm == "y" or confirm == "yes":
-                            self.split_hand(player, index)
+                            self.split_hand(player,deck, index)
                             return
                         elif confirm == "n" or confirm == "no":
                             confirmation = True
@@ -516,11 +516,11 @@ have the option to split again. This of course requires betting
                     """.format(self.money_bet))
                 else:
                     print("Please enter y on n.")
-        self.play_hand(player, index)
+        self.play_hand(player,deck, index)
         return
 
 
-    def play_dealer_hand(self):
+    def play_dealer_hand(self,deck):
         print("The dealer will now play their hand:")
         self.print_dealer_hand()
         sleep(2)
@@ -542,6 +542,7 @@ have the option to split again. This of course requires betting
 
 
 def play_game():
+    deck = [["2H",2], ["3H",3], ["4H",4], ["5H",5], ["6H",6], ["7H",7], ["8H",8], ["9H",9], ["10H",10], ["JH",10], ["QH",10], ["KH",10], ["AH",1,11], ["2S",2], ["3S",3], ["4S",4], ["5S",5], ["6S",6], ["7S",7], ["8S",8], ["9S",9], ["10S",10], ["JS",10], ["QS",10], ["KS",10], ["AS",1,11], ["2D",2], ["3D",3], ["4D",4], ["5D",5], ["6D",6], ["7D",7], ["8D",8], ["9D",9], ["10D",10], ["JD",10], ["QD",10], ["KD",10], ["AD",1,11], ["2C",2], ["3C",3], ["4C",4], ["5C",5], ["6C",6], ["7C",7], ["8C",8], ["9C",9], ["10C",10], ["JC",10], ["QC",10], ["KC",10], ["AC",1,11]]
     rules = False
     while rules == False:
         see_rules = input("Would you like to see the rules before we begin?(y/n)\n").lower().strip()
@@ -653,10 +654,8 @@ they can be found in the README.txt file. Happy playing :)
     players = get_players()
     keep_going = True
     while keep_going and len(players) != 0:
-        deck = [["2H",2], ["3H",3], ["4H",4], ["5H",5], ["6H",6], ["7H",7], ["8H",8], ["9H",9], ["10H",10], ["JH",10], ["QH",10], ["KH",10], ["AH",1,11], ["2S",2], ["3S",3], ["4S",4], ["5S",5], ["6S",6], ["7S",7], ["8S",8], ["9S",9], ["10S",10], ["JS",10], ["QS",10], ["KS",10], ["AS",1,11], ["2D",2], ["3D",3], ["4D",4], ["5D",5], ["6D",6], ["7D",7], ["8D",8], ["9D",9], ["10D",10], ["JD",10], ["QD",10], ["KD",10], ["AD",1,11], ["2C",2], ["3C",3], ["4C",4], ["5C",5], ["6C",6], ["7C",7], ["8C",8], ["9C",9], ["10C",10], ["JC",10], ["QC",10], ["KC",10], ["AC",1,11]]
-        print("deck length is {}".format(len(deck)))
         for player in players:
-            player.get_hand_participation()
+            player.get_hand_participation(deck)
         hands_being_played = 0
         for player in players:
             hands_being_played += len(player.currenthands)
@@ -666,8 +665,8 @@ they can be found in the README.txt file. Happy playing :)
             sleep(2)
             i = 0
             for player in players:
-                player.play_hands()
-            dealer_hand.play_dealer_hand()
+                player.play_hands(deck)
+            dealer_hand.play_dealer_hand(deck)
             index = 0
             while index < len(players):
                 players[index].collect_winnings(dealer_hand)
@@ -684,6 +683,8 @@ they can be found in the README.txt file. Happy playing :)
                     index += 1
         else:
             print("Nobody played this round.")
+        if len(deck) != 52:
+                deck = [["2H",2], ["3H",3], ["4H",4], ["5H",5], ["6H",6], ["7H",7], ["8H",8], ["9H",9], ["10H",10], ["JH",10], ["QH",10], ["KH",10], ["AH",1,11], ["2S",2], ["3S",3], ["4S",4], ["5S",5], ["6S",6], ["7S",7], ["8S",8], ["9S",9], ["10S",10], ["JS",10], ["QS",10], ["KS",10], ["AS",1,11], ["2D",2], ["3D",3], ["4D",4], ["5D",5], ["6D",6], ["7D",7], ["8D",8], ["9D",9], ["10D",10], ["JD",10], ["QD",10], ["KD",10], ["AD",1,11], ["2C",2], ["3C",3], ["4C",4], ["5C",5], ["6C",6], ["7C",7], ["8C",8], ["9C",9], ["10C",10], ["JC",10], ["QC",10], ["KC",10], ["AC",1,11]]
         another_round = False
         while another_round == False:
             play_another = input("Are we playing another round?(y/n)\n").lower().strip()
@@ -706,7 +707,6 @@ they can be found in the README.txt file. Happy playing :)
             else:
                 print("Please enter y or n.")
     print("Thanks for playing :)")
-
 
 
 play_game()
