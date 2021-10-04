@@ -660,24 +660,24 @@ they can be found in the README.txt file. Happy playing :)
         for player in players:
             hands_being_played += len(player.currenthands)
         if hands_being_played != 0:
-            test_dealer_hand = Hand(get_first_cards(deck))
-            test_dealer_hand.print_dealer_hand(True)
+            dealer_hand = Hand(get_first_cards(deck))
+            dealer_hand.print_dealer_hand(True)
             sleep(2)
             i = 0
             for player in players:
                 player.play_hands()
-            test_dealer_hand.play_dealer_hand()
+            dealer_hand.play_dealer_hand()
             index = 0
-            for player in players:
-                player.collect_winnings(test_dealer_hand)
-                player.clear_hands()
-                if player.chips < 10 and player.chips > 0:
-                    print("{} only has {} chips left. Hopefully that's enough for the bus home.".format(player.name, player.chips))
-                    print("{} has now left the table.".format(player.name))
+            while index < len(players):
+                players[index].collect_winnings(dealer_hand)
+                players[index].clear_hands()
+                if player[index].chips < 10 and player[index].chips > 0:
+                    print("{} only has {} chips left. Hopefully that's enough for the bus home.".format(players[index].name, players[index].chips))
+                    print("{} has now left the table.".format(players[index].name))
                     players.pop(index)
                 elif player.chips == 0:
-                    print("{} only has no chips left. Hopefully someone will lend you the money to get home.".format(player.name))
-                    print("{} has now left the table.".format(player.name))
+                    print("{} only has no chips left. Hopefully someone will lend you the money to get home.".format(players[index].name))
+                    print("{} has now left the table.".format(players[index].name))
                     players.pop(index)
                 else:
                     index += 1
