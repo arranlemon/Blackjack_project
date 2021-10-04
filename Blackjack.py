@@ -1,5 +1,6 @@
 
-import random
+from random import randint
+from time import sleep
 
 deck = [["2H",2], ["3H",3], ["4H",4], ["5H",5], ["6H",6], ["7H",7], ["8H",8], ["9H",9], ["10H",10], ["JH",10], ["QH",10], ["KH",10], ["AH",1,11], ["2S",2], ["3S",3], ["4S",4], ["5S",5], ["6S",6], ["7S",7], ["8S",8], ["9S",9], ["10S",10], ["JS",10], ["QS",10], ["KS",10], ["AS",1,11], ["2D",2], ["3D",3], ["4D",4], ["5D",5], ["6D",6], ["7D",7], ["8D",8], ["9D",9], ["10D",10], ["JD",10], ["QD",10], ["KD",10], ["AD",1,11], ["2C",2], ["3C",3], ["4C",4], ["5C",5], ["6C",6], ["7C",7], ["8C",8], ["9C",9], ["10C",10], ["JC",10], ["QC",10], ["KC",10], ["AC",1,11]]
 
@@ -9,12 +10,12 @@ min_bet = 10
 max_bet = 100
 
 def get_first_cards(deck):
-        card1 = deck.pop(random.randint(0,len(deck)-1))
-        card2 = deck.pop(random.randint(0,len(deck)-1))
+        card1 = deck.pop(randint(0,len(deck)-1))
+        card2 = deck.pop(randint(0,len(deck)-1))
         return [card1,card2]
 
 def get_single_card(deck):
-    card = deck.pop(random.randint(0,len(deck)-1))
+    card = deck.pop(randint(0,len(deck)-1))
     return card
 
 def reset_deck(deck):
@@ -77,6 +78,7 @@ class Player:
                             self.currenthands.append(Hand(get_first_cards(deck), money_bet))
                             print("{} was dealt the following:".format(self.name))
                             print(self.currenthands[0])
+                            sleep(2)
                             money_confirmed = True
                             bet_confirmed = True
                         elif bet_confirmation == "n" or bet_confirmation == "no":
@@ -109,6 +111,7 @@ bet is 10 and the maximum bet is 100. All bets must be a multiple of 10.
 
     def play_hands(self):
         print("{} will now play their hands:".format(self.name))
+        sleep(1.5)
         #now we actually play the hand
         index = 0
         for hand in self.currenthands:
@@ -120,20 +123,25 @@ bet is 10 and the maximum bet is 100. All bets must be a multiple of 10.
                 index += 1
             if index < len(self.currenthands):
                 print("Next hand:")
+            sleep(2)
         return
 
     def collect_winnings(self, dealers_hand):
         if len(self.currenthands) == 0:
-            print("{} did not play this hand. Their chips remain at {}".format(self.name,self.chips))
+            print("{} did not play this round. Their chips remain at {}".format(self.name,self.chips))
+            sleep(2)
             return
         starting_chips = self.chips
         print("{} will now evaluate their hands:".format(self.name))
         dealers_hand.print_dealer_hand()
+        sleep(2)
         dealer_is_blackjack = len(dealers_hand.cards) == 2 and dealers_hand.best_hand_value == 21
         for index in range(0,len(self.currenthands)):
             result = ""
             print("Hand " + str(index+1) + ":")
+            sleep(1)
             print(self.currenthands[index])
+            sleep(2)
             hand_is_blackjack = len(self.currenthands[index].cards) == 2 and self.currenthands[index].best_hand_value == 21
             if self.currenthands[index].is_bust():
                 result = "Lose"
@@ -158,6 +166,7 @@ bet is 10 and the maximum bet is 100. All bets must be a multiple of 10.
                 print("Dealer wins. {} lost their {} chips from this hand to the dealer.".format(self.name,self.currenthands[index].money_bet))
             self.currenthands[index].money_made = int(self.currenthands[index].money_bet*win_multipliers[result])
             self.chips += self.currenthands[index].money_made
+            sleep(2)
         profits = self.chips - starting_chips
         if profits > 0:
             print("{} made a total of {} this round.".format(self.name, profits))
@@ -353,8 +362,8 @@ class Hand:
             if confirmation_decision == "y" or confirmation_decision == "yes":
                 confirmed = True
                 self.cards.append(get_single_card(deck))
+                print(self)
                 if self.is_bust():
-                    print(self)
                     print("Bust.")
             elif confirmation_decision == "n" or confirmation_decision == "no":
                 print("Please enter the action you intended.")
@@ -441,8 +450,8 @@ It will also involve betting {} chips again.""".format(self.money_bet))
                 else:
                     print("Please enter y or n.")
         confirmed_action = False
+        print(self)
         while self.is_bust() == False or confirmed_action == False:
-            print(self)
             action = input("Would you like to hit or sit?(hit/sit)\n").lower().strip()
             if action == "hit":
                 confirmed_action = self.hit()
@@ -514,6 +523,7 @@ have the option to split again. This of course requires betting
     def play_dealer_hand(self):
         print("The dealer will now play their hand:")
         self.print_dealer_hand()
+        sleep(2)
         if self.best_hand_value == 21:
             print("Blackjack. Dealer sits.")
             return
@@ -521,6 +531,7 @@ have the option to split again. This of course requires betting
             print("Dealer hits.")
             self.cards.append(get_single_card(deck))
             self.print_dealer_hand()
+            sleep(2)
         if self.is_bust():
             print("Bust.")
             return
@@ -651,6 +662,7 @@ they can be found in the README.txt file. Happy playing :)
         if hands_being_played != 0:
             test_dealer_hand = Hand(get_first_cards(deck))
             test_dealer_hand.print_dealer_hand(True)
+            sleep(2)
             i = 0
             for player in players:
                 player.play_hands()
