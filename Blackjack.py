@@ -108,6 +108,9 @@ bet is 10 and the maximum bet is 100. All bets must be a multiple of 10.
         return
 
     def play_hands(self, deck):
+        if len(self.currenthands) == 0:
+            print("{} sat thuis round out.".format(self.name))
+            return
         print("{} will now play their hands:".format(self.name))
         sleep(1.5)
         #now we actually play the hand
@@ -126,7 +129,7 @@ bet is 10 and the maximum bet is 100. All bets must be a multiple of 10.
 
     def collect_winnings(self, dealers_hand):
         if len(self.currenthands) == 0:
-            print("{} did not play this round. Their chips remain at {}".format(self.name,self.chips))
+            print("{} did not play this round. Their chips remain at {}.".format(self.name,self.chips))
             sleep(2)
             return
         starting_chips = self.chips
@@ -137,8 +140,12 @@ bet is 10 and the maximum bet is 100. All bets must be a multiple of 10.
         dealer_is_blackjack = len(dealers_hand.cards) == 2 and dealers_hand.best_hand_value == 21
         for index in range(0,len(self.currenthands)):
             result = ""
-            print("Hand " + str(index+1) + ":")
-            sleep(1)
+            if len(self.currenthands) == 1:
+                print("Your hand:")
+                sleep(1)
+            else:
+                print("Hand " + str(index+1) + ":")
+                sleep(1)
             print(self.currenthands[index])
             sleep(2)
             hand_is_blackjack = len(self.currenthands[index].cards) == 2 and self.currenthands[index].best_hand_value == 21
@@ -153,7 +160,7 @@ bet is 10 and the maximum bet is 100. All bets must be a multiple of 10.
                 print("Dealers blackjack wins. Result is a loss. {} lost their {} chips from this hand to the dealer.".format(self.name,self.currenthands[index].money_bet))
             elif not dealer_is_blackjack and hand_is_blackjack:
                 result = "Blackjack"
-                print("Your Blackjack wins. {} got back their bet of {} plus an extra {}.".format(self.name, self.currenthands[index].money_bet, self.currenthands[index].money_bet*win_multipliers[result]))
+                print("Your Blackjack wins. {} got back their bet of {} plus an extra {}.".format(self.name, self.currenthands[index].money_bet, int(self.currenthands[index].money_bet*win_multipliers[result])))
             elif dealers_hand.best_hand_value == self.currenthands[index].best_hand_value:
                 result = "Push"
                 print("Both have same value of {}. Result is a push. {} got their {} chips back from this hand back.".format(dealers_hand.best_hand_value,self.name, self.currenthands[index].money_bet))
